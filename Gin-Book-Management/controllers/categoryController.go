@@ -34,13 +34,17 @@ func CreateCategory(c *gin.Context) {
 
 func UpdateCategory(c *gin.Context) {
 
-	type requestID struct {
-		ID string `json:"id"`
+	type requestForm struct {
+		Id          int    `json:"id" binding:"required"`
+		Name        string `json:"name" binding:"required"`
+		Description string `json:"description"`
 	}
 
-	var requestid requestID
+	var request requestForm
+	var category models.Categories
 
-	err := c.ShouldBindJSON(&requestid)
+	// request validate and assing to variable
+	err := c.ShouldBindJSON(&request)
 
 	if err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{
@@ -48,8 +52,52 @@ func UpdateCategory(c *gin.Context) {
 		})
 	}
 
+	// finding category and assigning to
+	database.Database.First(&category, request.Id)
+
+	category.Name = request.Name
+	category.Description = request.Description
+
+	database.Database.Save(&category)
+
 	c.IndentedJSON(http.StatusOK, gin.H{
-		"change": requestid,
+		"category": category,
+	})
+
+}
+
+func DeleteCategory(c *gin.Context) {
+
+	type requestForm struct {
+		Id int `json:"id" binding:"required"`
+	}
+
+	var id requestForm
+	var category models.Categories
+
+	err := c.ShouldBindJSON(&id)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+	}
+
+	// find category and assing to model
+
+	database.Database.First(&category, id.Id)
+
+	if category.ID == 0 {
+		c.IndentedJSON(http.StatusNotFound, gin.H{
+			"message": "category not found with this id",
+		})
+
+		return
+	}
+
+	database.Database.Delete(&category, id.Id)
+
+	c.IndentedJSON(http.StatusOK, gin.H{
+		"category": "deleted successfully",
 	})
 
 }
