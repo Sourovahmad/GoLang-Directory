@@ -10,33 +10,41 @@ import (
 )
 
 func GetAllBooks(c *gin.Context) {
+
 	var books []models.Books
+	var category models.Categories
+
+	
 
 	database.Database.Find(&books)
 
+	for i := range books {
+		currentBook := books[i]
+		category_id := currentBook.Category_id
+		database.Database.Where("id = ?", category_id).First(&category)
+
+		fmt.Println(category)
+
+	}
+
+	allTheBooks := books
+
 	c.IndentedJSON(http.StatusOK, gin.H{
-		"books": books,
+		"books": allTheBooks,
 	})
 }
 
 func CreateBook(c *gin.Context) {
 
 	var request models.Books
-	var singleData models.Books
 
 	err := c.ShouldBindJSON(&request)
 
 	if err != nil {
-		fmt.Println(err.Error())
-	}
-
-	database.Database.Where("name = ?", request.Name).First(&singleData)
-
-	if singleData.ID != 0 {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{
-			"error": "Book with This name Already Exist",
+			"error": err.Error(),
 		})
-		return
+
 	}
 
 	database.Database.Create(&request)
@@ -45,4 +53,8 @@ func CreateBook(c *gin.Context) {
 		"new_book": request,
 	})
 
+}
+
+func GetSingleBook(c *gin.Context) {
+	//
 }

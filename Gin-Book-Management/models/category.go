@@ -1,7 +1,9 @@
 package models
 
+import "gorm.io/gorm"
+
 type Categories struct {
-	ID          uint   `json:"id"`
+	gorm.Model
 	Name        string `json:"name" binding:"required"`
 	Description string `json:"description"`
 }
